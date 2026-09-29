@@ -35,3 +35,8 @@ Reviewer shortcuts live in the footer ("Prototype tools"): mark all courses comp
 ## Accessibility approach
 Native controls (radio, checkbox, select, range, dialog, progress); landmarks and one h1 per page; focus moves to the h1 after navigation; skip link; status shown as icon + text; live announcements for sign-in, onboarding, progress, answers, exam submission and result; text size, high contrast, dark theme and reduced motion (also honours the OS setting); no autoplay, drag or hover-only UI.
 Automated checks only covered flow and focus. **Real VoiceOver on iPad testing is still needed.**
+
+## Online preview (GitHub Pages)
+`.github/workflows/pages.yml` builds a static export (`output: "export"`) and deploys it on every push to `main` or the working branch.
+One-time setup: repo **Settings → Pages → Source: GitHub Actions**. The site is then at `https://<org>.github.io/<repo>/`.
+Local dev is unaffected (`BASE_PATH` is only set in CI).
