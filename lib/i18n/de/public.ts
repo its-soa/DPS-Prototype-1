@@ -72,7 +72,7 @@ export const pub_de: Record<keyof typeof pub, string> = {
   "regok.cta": "Weiter zur Anmeldung",
 
   "signin.title": "Anmelden",
-  "signin.instructions": "Geben Sie Ihre E-Mail-Adresse und Ihr Passwort ein und wählen Sie dann „Bei der Schulung anmelden“.",
+  "signin.instructions": "Die Demodaten für neue Lernende sind bereits eingetragen. Wählen Sie „Bei der Schulung anmelden“ oder ändern Sie die Angaben, um ein anderes Konto zu verwenden.",
   "signin.submit": "Bei der Schulung anmelden",
   "signin.busy": "Sie werden angemeldet …",
   "signin.password": "Passwort",

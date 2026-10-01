@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Callout, Card } from "@/components/ui/card";
 import { Field, inputClass } from "@/components/ui/field";
 import { DEMO_ACCOUNTS, DEVICES } from "@/lib/mock-data";
+
+// Reviewer convenience: the form opens with the first-time learner already filled in, so nobody has to
+// find and type credentials. Remove (or gate behind an env flag) before a real launch.
+const PREFILL = DEMO_ACCOUNTS.find((a) => a.id === "user-new")!;
 import { useApp } from "@/lib/store";
 
 export default function SignInPage() {
@@ -70,10 +74,10 @@ export default function SignInPage() {
             </div>
           )}
           <Field id="email" label={t("reg.email")} required error={fieldErr.email}>
-            {(a) => <input {...a} ref={emailRef} type="email" autoComplete="username" className={inputClass} />}
+            {(a) => <input {...a} ref={emailRef} type="email" autoComplete="username" defaultValue={PREFILL.email} className={inputClass} />}
           </Field>
           <Field id="password" label={t("signin.password")} required error={fieldErr.password}>
-            {(a) => <input {...a} ref={passRef} type="password" autoComplete="current-password" className={inputClass} />}
+            {(a) => <input {...a} ref={passRef} type="password" autoComplete="current-password" defaultValue={PREFILL.password} className={inputClass} />}
           </Field>
           <div className="flex flex-wrap items-center gap-4">
             <Button type="submit" size="lg" disabled={busy} aria-busy={busy}>

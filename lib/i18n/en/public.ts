@@ -70,7 +70,7 @@ export const pub = {
   "regok.cta": "Continue to sign in",
 
   "signin.title": "Sign in",
-  "signin.instructions": "Enter your email and password, then choose Sign in to your training.",
+  "signin.instructions": "Demo details for the first-time learner are already filled in. Choose Sign in to your training, or change the details to use another account.",
   "signin.submit": "Sign in to your training",
   "signin.busy": "Signing you in…",
   "signin.password": "Password",
