@@ -1,9 +1,10 @@
 import { FileText, Headphones, Type, Video } from "lucide-react";
+import type { TKey } from "./i18n";
 import type { LessonKind } from "./types";
 
-export const KIND_META: Record<LessonKind, { label: string; Icon: typeof Headphones }> = {
-  audio: { label: "Audio lesson", Icon: Headphones },
-  video: { label: "Video lesson with audio description", Icon: Video },
-  text: { label: "Text lesson", Icon: Type },
-  pdf: { label: "PDF handbook", Icon: FileText },
+export const KIND_META: Record<LessonKind, { labelKey: TKey; Icon: typeof Headphones }> = {
+  audio: { labelKey: "kind.audio", Icon: Headphones },
+  video: { labelKey: "kind.video", Icon: Video },
+  text: { labelKey: "kind.text", Icon: Type },
+  pdf: { labelKey: "kind.pdf", Icon: FileText },
 };

@@ -7,22 +7,23 @@ import { useAnnouncer } from "@/components/a11y/ScreenReaderAnnouncement";
 import { PracticeSession } from "@/components/learning/PracticeSession";
 import { ButtonLink } from "@/components/ui/button";
 import { Callout } from "@/components/ui/card";
-import { REMEDIATION } from "@/lib/mock-data";
+import { useCatalog } from "@/lib/catalog";
 import { useLearner } from "@/lib/store";
 
 export default function RemediationPracticePage() {
-  const { state, answerRemediation, finishRemediationPractice } = useLearner();
+  const { state, answerRemediation, finishRemediationPractice, t } = useLearner();
+  const { remediation: REMEDIATION } = useCatalog();
   const { announce } = useAnnouncer();
   const [done, setDone] = useState(false);
 
   if (done) {
     return (
       <div className="max-w-2xl space-y-6">
-        <PageIntro title="Remediation complete" instructions="Your exam retry is now unlocked." />
+        <PageIntro title={t("rem.done.title")} instructions={t("rem.done.instructions")} />
         <Callout tone="success" className="space-y-4">
-          <p className="flex items-center gap-2 text-xl font-bold text-success"><CheckCircle2 aria-hidden="true" /> Retry unlocked</p>
-          <p className="text-lg">Well done. You can start your second attempt whenever you feel ready.</p>
-          <ButtonLink href="/exam" size="lg" autoFocus>Continue to exam retry instructions</ButtonLink>
+          <p className="flex items-center gap-2 text-xl font-bold text-success"><CheckCircle2 aria-hidden="true" /> {t("rem.done.unlocked")}</p>
+          <p className="text-lg">{t("rem.done.body")}</p>
+          <ButtonLink href="/exam" size="lg" autoFocus>{t("rem.done.cta")}</ButtonLink>
         </Callout>
       </div>
     );
@@ -31,8 +32,8 @@ export default function RemediationPracticePage() {
   return (
     <div className="max-w-3xl space-y-6">
       <PageIntro
-        title="Remediation practice"
-        instructions="Two questions. If an answer is not right, you can review the recap segment and try again."
+        title={t("rem.practice.title")}
+        instructions={t("rem.practice.instructions")}
         focus={false}
       />
       <PracticeSession
@@ -43,9 +44,9 @@ export default function RemediationPracticePage() {
         onFinish={() => {
           finishRemediationPractice();
           setDone(true);
-          announce("Remediation complete. Your exam retry is now unlocked.");
+          announce(t("rem.done.message"));
         }}
-        finishLabel="Finish remediation and unlock retry"
+        finishLabel={t("rem.practice.finish")}
       />
     </div>
   );

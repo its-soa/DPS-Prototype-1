@@ -1,32 +1,36 @@
+"use client";
+
 import { PlayCircle } from "lucide-react";
 import type { Lesson } from "@/lib/types";
 import { ButtonLink } from "@/components/ui/button";
 import { Callout } from "@/components/ui/card";
-import { courseById } from "@/lib/mock-data";
-import { formatClock, formatDate, spokenTime } from "@/lib/utils";
+import { useCatalog } from "@/lib/catalog";
+import { useApp } from "@/lib/store";
+import { deviceKey, formatClock } from "@/lib/utils";
 
 export function ResumeLearningBanner({
   lesson, position, device, updatedAt,
 }: { lesson: Lesson; position: number; device?: string; updatedAt?: string }) {
+  const { t, spoken, fmtDate } = useApp();
+  const { courseById } = useCatalog();
   const timed = lesson.kind === "audio" || lesson.kind === "video";
   const course = courseById(lesson.courseId)!;
+  const dk = deviceKey(device);
   return (
     <Callout tone="info" className="space-y-3" aria-labelledby="resume-h" role="region">
-      <h2 id="resume-h" className="text-2xl">Resume where you left off</h2>
-      <p className="text-lg">
-        <strong>{course.title}</strong>, lesson {lesson.order}: {lesson.title}.
-      </p>
+      <h2 id="resume-h" className="text-2xl">{t("dash.resume")}</h2>
+      <p className="text-lg">{t("resume.where", { course: course.title, n: lesson.order, lesson: lesson.title })}</p>
       {timed && position > 0 && (
         <p className="text-base">
-          Saved at <span aria-hidden="true">{formatClock(position)}</span>
-          <span className="sr-only">{spokenTime(position)}</span>
-          {device && <> on the {device}</>}
-          {updatedAt && <>, {formatDate(updatedAt)}</>}.
+          <span aria-hidden="true">{t("resume.savedAt", { time: formatClock(position) })}</span>
+          <span className="sr-only">{t("resume.savedAt", { time: spoken(position) })}</span>
+          {dk && <> {t("resume.onDevice", { device: t(dk) })}</>}
+          {updatedAt && <>, {fmtDate(updatedAt)}</>}.
         </p>
       )}
       <ButtonLink href={`/courses/${lesson.courseId}/lessons/${lesson.id}`} size="lg">
         <PlayCircle aria-hidden="true" className="size-6" />
-        {timed && position > 0 ? `Resume lesson from ${formatClock(position)}` : `Open lesson ${lesson.order}`}
+        {timed && position > 0 ? t("resume.cta", { time: formatClock(position) }) : t("resume.openLesson", { n: lesson.order })}
       </ButtonLink>
     </Callout>
   );

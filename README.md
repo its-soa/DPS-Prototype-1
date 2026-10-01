@@ -23,7 +23,7 @@ Reviewer shortcuts live in the footer ("Prototype tools"): mark all courses comp
 - Exam attempt 1 always fails and attempt 2+ always passes, so both journeys can be shown. The result page says so.
 - Lesson formats: audio, video (audio described), formatted text, PDF handbook reader. Every course mixes at least two formats.
 - Persistence is `localStorage` via `lib/persistence.ts`. Passwords are stored in plain text for the mock only.
-- Languages: English, German (shell, info hero, dashboard headings), French placeholder (`lib/i18n.ts`).
+- Languages: English and German, switchable from the header on any page and remembered. French exists only as a hidden placeholder (`NEXT_PUBLIC_SHOW_PLACEHOLDER_LANG=1` shows it).
 
 ## Structure
 - `app/(public)`: info, register, sign-in. `app/(learner)`: guarded pages (dashboard, courses, lessons, practice, progress, exam/*, certification, settings, onboarding).
@@ -40,3 +40,9 @@ Automated checks only covered flow and focus. **Real VoiceOver on iPad testing i
 `.github/workflows/pages.yml` builds a static export (`output: "export"`) and deploys it on every push to `main` or the working branch.
 One-time setup: repo **Settings → Pages → Source: GitHub Actions**. The site is then at `https://<org>.github.io/<repo>/`.
 Local dev is unaffected (`BASE_PATH` is only set in CI).
+
+## Translations
+- **Interface text:** `lib/i18n/en/*.ts` is the source; `lib/i18n/de/*.ts` must contain every English key (the compiler enforces it). Plurals use `key.one` / `key.other`; `**bold**` markers are allowed in strings.
+- **Course content** (courses, lessons, transcripts, practice and exam questions, remediation): English lives in `lib/mock-data.ts`; German text only is in `lib/content/de.ts`, keyed by the same ids. Answer keys and timings are never translated, so a translator cannot break scoring.
+- **Reviewing German:** send reviewers `lib/i18n/de/*.ts` and `lib/content/de.ts`. Terminology decisions are listed at the top of `lib/content/de.ts`.
+- **Adding a language:** add `lib/i18n/<code>/`, a content pack, and register both in `lib/i18n.ts` and `lib/localize.ts`.

@@ -5,6 +5,7 @@ import { ArrowRight, BookOpen, CheckCircle2, RotateCcw } from "lucide-react";
 import { useAnnouncer } from "@/components/a11y/ScreenReaderAnnouncement";
 import { Button } from "@/components/ui/button";
 import { Callout } from "@/components/ui/card";
+import { useApp } from "@/lib/store";
 import type { PracticeQuestion } from "@/lib/types";
 
 type Result = { selected: string; correct: boolean } | null;
@@ -25,6 +26,7 @@ export function PracticeQuestionCard({
   continueLabel: string;
 }) {
   const { announce } = useAnnouncer();
+  const { t } = useApp();
   const [selected, setSelected] = useState<string>("");
   const [result, setResult] = useState<Result>(null);
   const [error, setError] = useState<string>();
@@ -36,27 +38,27 @@ export function PracticeQuestionCard({
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!selected) {
-      setError("Choose one answer before you submit.");
-      announce("Choose one answer before you submit.", { assertive: true });
+      setError(t("practice.err.choose"));
+      announce(t("practice.err.choose"), { assertive: true });
       return;
     }
     setError(undefined);
     const correct = selected === question.correct;
     setResult({ selected, correct });
     onSubmit(selected, correct);
-    announce(correct ? "Answer submitted. Correct." : "Answer submitted. Try again after reviewing the lesson segment.");
+    announce(correct ? t("practice.announce.correct") : t("practice.announce.retry"));
   }
 
   function tryAgain() {
     setResult(null);
     setSelected("");
-    announce("Choose a new answer.");
+    announce(t("practice.announce.new"));
     requestAnimationFrame(() => legendRef.current?.focus());
   }
 
   return (
-    <form onSubmit={submit} noValidate className="space-y-6" aria-label={`Practice question ${number} of ${total}`}>
-      <p className="text-base font-semibold text-muted">Question {number} of {total}</p>
+    <form onSubmit={submit} noValidate className="space-y-6" aria-label={t("practice.aria", { n: number, total })}>
+      <p className="text-base font-semibold text-muted">{t("exam.qOf", { n: number, total })}</p>
       <fieldset className="space-y-3" aria-describedby={error ? "practice-error" : undefined} disabled={!!result}>
         <legend ref={legendRef} tabIndex={-1} className="mb-3 text-2xl font-bold">
           {question.text}
@@ -77,28 +79,28 @@ export function PracticeQuestionCard({
           ))}
         </div>
       </fieldset>
-      {error && <p id="practice-error" className="font-semibold text-danger"><span aria-hidden="true">⚠ </span><span className="sr-only">Error: </span>{error}</p>}
+      {error && <p id="practice-error" className="font-semibold text-danger"><span aria-hidden="true">⚠ </span><span className="sr-only">{t("common.error")} </span>{error}</p>}
 
       {!result?.correct && (
-        <Button type="submit" size="lg" disabled={!!result && !result.correct}>Submit answer</Button>
+        <Button type="submit" size="lg" disabled={!!result && !result.correct}>{t("practice.submit")}</Button>
       )}
 
       {result && (
         <div data-testid="feedback">
           {result.correct ? (
             <Callout tone="success" className="space-y-3">
-              <h2 className="flex items-center gap-2 text-xl text-success"><CheckCircle2 aria-hidden="true" /> Correct</h2>
+              <h2 className="flex items-center gap-2 text-xl text-success"><CheckCircle2 aria-hidden="true" /> {t("practice.correct")}</h2>
               <p className="text-lg">{question.explanation}</p>
               <Button size="lg" onClick={onContinue}>{continueLabel} <ArrowRight aria-hidden="true" className="size-5" /></Button>
             </Callout>
           ) : (
             <Callout tone="warning" className="space-y-3">
-              <h2 className="text-xl">Not quite yet</h2>
+              <h2 className="text-xl">{t("practice.notYet")}</h2>
               <p className="text-lg">{question.hint}</p>
-              <p className="text-lg">You can review the related lesson segment before trying again.</p>
+              <p className="text-lg">{t("practice.reviewHint")}</p>
               <div className="flex flex-wrap gap-3">
-                <Button variant="primary" onClick={onOpenSegment}><BookOpen aria-hidden="true" className="size-5" /> Review related lesson segment</Button>
-                <Button variant="secondary" onClick={tryAgain}><RotateCcw aria-hidden="true" className="size-5" /> Try again</Button>
+                <Button variant="primary" onClick={onOpenSegment}><BookOpen aria-hidden="true" className="size-5" /> {t("practice.reviewSegment")}</Button>
+                <Button variant="secondary" onClick={tryAgain}><RotateCcw aria-hidden="true" className="size-5" /> {t("practice.tryAgain")}</Button>
               </div>
             </Callout>
           )}

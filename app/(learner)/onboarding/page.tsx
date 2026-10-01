@@ -8,20 +8,14 @@ import { PageIntro } from "@/components/a11y/PageIntro";
 import { useAnnouncer } from "@/components/a11y/ScreenReaderAnnouncement";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Callout } from "@/components/ui/card";
+import type { TKey } from "@/lib/i18n";
+import { rich } from "@/lib/rich";
 import { useLearner } from "@/lib/store";
 import { useReduceMotion } from "@/lib/use-motion";
 
-const ENABLED_MESSAGE =
-  "Audio guidance enabled. This platform will provide spoken orientation and accessible navigation support.";
-
-const STEPS = [
-  { key: "welcome", title: "Welcome" },
-  { key: "audio", title: "Choose audio guidance" },
-  { key: "navigation", title: "How navigation works" },
-  { key: "lessons", title: "Lesson audio and transcripts" },
-  { key: "saving", title: "Your progress is saved" },
-  { key: "finish", title: "Finish orientation" },
-] as const;
+const STEPS = ["welcome", "audio", "navigation", "lessons", "saving", "finish"] as const;
+const stepTitle = (k: (typeof STEPS)[number]) => `onb.${k}.title` as TKey;
+const stepSpoken = (k: (typeof STEPS)[number]) => `onb.${k}.spoken` as TKey;
 
 function Waveform() {
   return (
@@ -34,7 +28,7 @@ function Waveform() {
 }
 
 export default function OnboardingPage() {
-  const { account, state, setSettings, completeOnboarding } = useLearner();
+  const { account, state, setSettings, completeOnboarding, t } = useLearner();
   const { announce, speak } = useAnnouncer();
   const reduce = useReduceMotion();
   const [step, setStep] = useState(0);
@@ -44,44 +38,36 @@ export default function OnboardingPage() {
   const firstRender = useRef(true);
   const audioOn = state.settings.audioGuidance;
 
-  const current = STEPS[step];
+  const key = STEPS[step];
   const next = STEPS[step + 1];
+  const title = t(stepTitle(key));
 
-  const bodyText: Record<string, string> = {
-    welcome: `Welcome, ${account.fullName}. This short orientation takes about three minutes. You can replay it at any time from your dashboard.`,
-    audio: "Choose whether you want spoken guidance. You can change this at any time in the page header.",
-    navigation: "Every page has a skip link, a main menu, and one main heading. Use Repeat page instructions to hear what to do on any page.",
-    lessons: "Lessons use audio, video with audio description, formatted text or PDF. Every lesson has a full transcript. Audio never starts by itself.",
-    saving: "Your progress is saved automatically. Sign in on another device and you can resume exactly where you stopped.",
-    finish: "You are ready to begin. Choose Finish orientation to go to your course overview.",
-  };
-
-  // Move focus to each new step heading; update the page title and (if enabled) speak the step.
+  // Update the page title and (if enabled) speak the step. Focus is handled by the heading refs below.
   useEffect(() => {
-    document.title = `Orientation, step ${step + 1} of ${STEPS.length}: ${current.title} · MTU Training Platform`;
+    document.title = `${t("onb.pageTitle", { step: step + 1, total: STEPS.length, title })} · ${t("brand.name")}`;
     if (firstRender.current) { firstRender.current = false; return; }
-    speak(`${current.title}. ${bodyText[current.key]}`);
+    speak(`${title}. ${t(stepSpoken(key), { name: account.fullName })}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [step, state.language]);
 
   function enableAudio() {
     setSettings({ audioGuidance: true });
     setAudioChosen(true);
-    announce(ENABLED_MESSAGE);
-    speak(ENABLED_MESSAGE, true); // learner just consented, so speaking is allowed straight away
+    announce(t("audio.enabledMessage"));
+    speak(t("audio.enabledMessage"), true); // learner just consented, so speaking is allowed straight away
     focusNext.current = "confirm"; // focus moves to the confirmation heading as it expands
   }
   function skipAudio() {
     setSettings({ audioGuidance: false });
     setAudioChosen(true);
-    announce("Audio guidance stays off. You can turn it on at any time from the page header.");
+    announce(t("onb.audio.stayOffMessage"));
     focusNext.current = "confirm";
   }
   function finish() {
     completeOnboarding();
     setDone(true);
-    announce("Onboarding complete. You can now go to your course overview.");
-    speak("Onboarding complete. You can now go to your course overview.");
+    announce(t("onb.doneMessage"));
+    speak(t("onb.doneMessage"));
   }
 
   const stepFocusRef = useCallback((el: HTMLElement | null) => {
@@ -96,12 +82,12 @@ export default function OnboardingPage() {
   if (done) {
     return (
       <>
-        <PageIntro title="Orientation complete" />
+        <PageIntro title={t("onb.done.title")} />
         <motion.div initial={reduce ? false : { opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}>
           <Callout tone="success" className="max-w-xl space-y-4">
-            <p className="flex items-center gap-2 text-xl font-bold text-success"><CheckCircle2 aria-hidden="true" /> You are all set</p>
-            <p className="text-lg">Your first required course is waiting. You can replay this orientation from your dashboard at any time.</p>
-            <ButtonLink href="/dashboard" size="lg" autoFocus>Go to course overview</ButtonLink>
+            <p className="flex items-center gap-2 text-xl font-bold text-success"><CheckCircle2 aria-hidden="true" /> {t("onb.done.allSet")}</p>
+            <p className="text-lg">{t("onb.done.body")}</p>
+            <ButtonLink href="/dashboard" size="lg" autoFocus>{t("onb.done.cta")}</ButtonLink>
           </Callout>
         </motion.div>
       </>
@@ -110,12 +96,8 @@ export default function OnboardingPage() {
 
   return (
     <>
-      <PageIntro
-        title="Orientation"
-        instructions="Six short steps. Use the buttons at the bottom of each step to move forward or back."
-        focus={false}
-      />
-      <p className="mb-4 text-lg font-semibold" aria-hidden="true">Step {step + 1} of {STEPS.length}</p>
+      <PageIntro title={t("onb.title")} instructions={t("onb.instructions")} focus={false} />
+      <p className="mb-4 text-lg font-semibold" aria-hidden="true">{t("onb.stepOf", { step: step + 1, total: STEPS.length })}</p>
 
       <AnimatePresence mode="wait" initial={false}>
         <motion.section
@@ -128,13 +110,13 @@ export default function OnboardingPage() {
           className="max-w-2xl space-y-6"
         >
           <h2 id="step-heading" ref={stepFocusRef} tabIndex={-1} className="text-2xl sm:text-3xl">
-            <span className="sr-only">Step {step + 1} of {STEPS.length}: </span>{current.title}
+            <span className="sr-only">{t("onb.stepOf", { step: step + 1, total: STEPS.length })}: </span>{title}
           </h2>
 
           {step === 0 && (
             <>
-              <p className="text-lg">Welcome, {account.fullName}. This platform was built for you: blind and low-vision medical examiners.</p>
-              <p className="text-lg">This orientation takes about three minutes. It explains how to move around, how lessons work, and how your progress is saved.</p>
+              <p className="text-lg">{t("onb.welcome.p1", { name: account.fullName })}</p>
+              <p className="text-lg">{t("onb.welcome.p2")}</p>
             </>
           )}
 
@@ -142,13 +124,13 @@ export default function OnboardingPage() {
             <>
               {!audioChosen && (
                 <>
-                  <p className="text-lg">Audio guidance gives you spoken orientation and navigation help. It only speaks when you ask, and it never plays lesson audio by itself.</p>
+                  <p className="text-lg">{t("onb.audio.intro")}</p>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <Button size="lg" onClick={enableAudio} className="h-auto py-4"><Volume2 aria-hidden="true" /> Enable audio guidance</Button>
-                    <Button size="lg" variant="secondary" onClick={skipAudio} className="h-auto py-4"><VolumeX aria-hidden="true" /> Continue without audio guidance</Button>
+                    <Button size="lg" onClick={enableAudio} className="h-auto py-4"><Volume2 aria-hidden="true" /> {t("onb.audio.enable")}</Button>
+                    <Button size="lg" variant="secondary" onClick={skipAudio} className="h-auto py-4"><VolumeX aria-hidden="true" /> {t("onb.audio.skip")}</Button>
                   </div>
                   <details className="rounded-xl border-2 border-border-soft p-4">
-                    <summary className="min-h-12 cursor-pointer text-base font-semibold">Adjust other accessibility settings</summary>
+                    <summary className="min-h-12 cursor-pointer text-base font-semibold">{t("onb.audio.moreSettings")}</summary>
                     <div className="mt-4"><AccessibilitySettingsPanel /></div>
                   </details>
                 </>
@@ -161,13 +143,9 @@ export default function OnboardingPage() {
                   className="overflow-hidden"
                 >
                   <Callout tone={audioOn ? "success" : "info"} className="space-y-4">
-                    <h3 ref={confirmFocusRef} tabIndex={-1} className="text-xl font-bold">{audioOn ? "Audio guidance is on" : "Audio guidance is off"}</h3>
+                    <h3 ref={confirmFocusRef} tabIndex={-1} className="text-xl font-bold">{audioOn ? t("onb.audio.isOn") : t("onb.audio.isOff")}</h3>
                     {audioOn && <Waveform />}
-                    <p className="text-lg">
-                      {audioOn
-                        ? "This platform will provide spoken orientation and accessible navigation support."
-                        : "You can turn audio guidance on at any time with the switch in the page header."}
-                    </p>
+                    <p className="text-lg">{audioOn ? t("onb.audio.isOnBody") : t("onb.audio.isOffBody")}</p>
                   </Callout>
                 </motion.div>
               )}
@@ -176,51 +154,51 @@ export default function OnboardingPage() {
 
           {step === 2 && (
             <>
-              <p className="text-lg">You always know where you are. On every page:</p>
+              <p className="text-lg">{t("onb.nav.lead")}</p>
               <ul className="list-disc space-y-2 pl-6 text-lg">
-                <li>The first item is <strong>Skip to main content</strong>.</li>
-                <li>The <strong>main menu</strong> is a list of links: Dashboard, My progress, Certification exam, Certification and Accessibility settings.</li>
-                <li>There is one main heading, and focus moves to it when a page opens.</li>
-                <li><strong>Repeat page instructions</strong> in the header tells you what to do on the current page.</li>
-                <li>In lessons and exams you always hear your place, for example &ldquo;Question 2 of 10&rdquo;.</li>
+                <li>{rich(t("onb.nav.1"))}</li>
+                <li>{rich(t("onb.nav.2"))}</li>
+                <li>{t("onb.nav.3")}</li>
+                <li>{rich(t("onb.nav.4"))}</li>
+                <li>{t("onb.nav.5")}</li>
               </ul>
             </>
           )}
 
           {step === 3 && (
             <>
-              <p className="text-lg">Lessons come in four formats: audio, video with audio description, formatted text, and PDF handbooks with a page reader.</p>
+              <p className="text-lg">{t("onb.lessons.lead")}</p>
               <ul className="list-disc space-y-2 pl-6 text-lg">
-                <li>Audio and video have play and pause, back 15 seconds, forward 30 seconds and speed controls.</li>
-                <li>A full <strong>transcript</strong> sits directly under the player.</li>
-                <li>Nothing plays until you choose Play.</li>
+                <li>{t("onb.lessons.1")}</li>
+                <li>{rich(t("onb.lessons.2"))}</li>
+                <li>{t("onb.lessons.3")}</li>
               </ul>
             </>
           )}
 
           {step === 4 && (
             <>
-              <p className="text-lg">Your place is saved automatically: playback position, practice answers and exam answers.</p>
-              <p className="text-lg">If you sign in on another device, your course shows a &ldquo;Resume&rdquo; button that takes you to the exact moment you stopped.</p>
-              <Callout tone="info"><p className="text-base">You will hear &ldquo;Progress saved&rdquo; when you pause or leave a lesson.</p></Callout>
+              <p className="text-lg">{t("onb.saving.p1")}</p>
+              <p className="text-lg">{t("onb.saving.p2")}</p>
+              <Callout tone="info"><p className="text-base">{t("onb.saving.note")}</p></Callout>
             </>
           )}
 
           {step === 5 && (
             <>
-              <p className="text-lg">That is everything. Next you will see your course overview with your three required courses.</p>
-              <p className="text-base text-muted">You can change accessibility settings at any time, and replay this orientation from the dashboard.</p>
+              <p className="text-lg">{t("onb.finish.p1")}</p>
+              <p className="text-base text-muted">{t("onb.finish.p2")}</p>
             </>
           )}
 
           <div className="flex flex-wrap items-center gap-3 border-t-2 border-border-soft pt-6">
             {step > 0 && (
               <Button variant="secondary" size="lg" onClick={() => { focusNext.current = "step"; setStep(step - 1); }}>
-                <ArrowLeft aria-hidden="true" /> Back to {STEPS[step - 1].title.toLowerCase()}
+                <ArrowLeft aria-hidden="true" /> {t("onb.backTo", { title: t(stepTitle(STEPS[step - 1])) })}
               </Button>
             )}
             {step === 5 ? (
-              <Button size="lg" onClick={finish}><CheckCircle2 aria-hidden="true" /> Finish orientation</Button>
+              <Button size="lg" onClick={finish}><CheckCircle2 aria-hidden="true" /> {t("onb.finish.cta")}</Button>
             ) : (
               <Button
                 size="lg"
@@ -228,10 +206,10 @@ export default function OnboardingPage() {
                 onClick={() => { focusNext.current = "step"; setStep(step + 1); }}
                 className={showAudioResult && audioOn ? "px-10 ring-4 ring-primary/30" : ""}
               >
-                Continue to {next?.title.toLowerCase()} <ArrowRight aria-hidden="true" />
+                {t("onb.continueTo", { title: t(stepTitle(next)) })} <ArrowRight aria-hidden="true" />
               </Button>
             )}
-            {step === 1 && !audioChosen && <p className="text-sm text-muted">Choose an option above to continue.</p>}
+            {step === 1 && !audioChosen && <p className="text-sm text-muted">{t("onb.audio.choose")}</p>}
           </div>
         </motion.section>
       </AnimatePresence>

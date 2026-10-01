@@ -9,11 +9,12 @@ import { LessonAudioPlayer } from "@/components/learning/LessonAudioPlayer";
 import { TranscriptPanel } from "@/components/learning/TranscriptPanel";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Callout } from "@/components/ui/card";
-import { REMEDIATION } from "@/lib/mock-data";
+import { useCatalog } from "@/lib/catalog";
 import { useLearner } from "@/lib/store";
 
 export default function RemediationPage() {
-  const { data, state, setRecapDone } = useLearner();
+  const { data, state, setRecapDone, t, spoken } = useLearner();
+  const { remediation: REMEDIATION } = useCatalog();
   const { announce } = useAnnouncer();
   const router = useRouter();
   const [position, setPosition] = useState(0);
@@ -27,10 +28,10 @@ export default function RemediationPage() {
   return (
     <div className="max-w-3xl space-y-8">
       <PageIntro
-        title="Remediation lesson: audio recap"
-        instructions="A short recap of the key ideas, followed by two practice questions. Then your exam retry unlocks."
+        title={t("rem.title")}
+        instructions={t("rem.instructions")}
       />
-      <Callout tone="info"><p className="text-lg">Take your time. This is a chance to strengthen what you already know. There is no penalty for spending as long as you need.</p></Callout>
+      <Callout tone="info"><p className="text-lg">{t("rem.calm")}</p></Callout>
 
       <LessonAudioPlayer
         kind="audio"
@@ -43,23 +44,23 @@ export default function RemediationPage() {
         onSave={noopSave}
         onComplete={finish}
       />
-      <TranscriptPanel segments={REMEDIATION.segments} position={position} onJump={(s) => { setPosition(s); announce(`Moved to ${s} seconds.`); }} />
+      <TranscriptPanel segments={REMEDIATION.segments} position={position} onJump={(s) => { setPosition(s); announce(t("lesson.moved", { time: spoken(s) })); }} />
 
       <section aria-labelledby="next-h" className="space-y-3">
-        <h2 id="next-h" className="text-2xl">Next step</h2>
+        <h2 id="next-h" className="text-2xl">{t("rem.next")}</h2>
         {done ? (
           <Callout tone="success" className="space-y-3">
-            <p className="flex items-center gap-2 text-lg font-bold"><CheckCircle2 aria-hidden="true" /> Recap complete</p>
-            <ButtonLink href="/exam/remediation/practice" size="lg">Continue to remediation practice</ButtonLink>
+            <p className="flex items-center gap-2 text-lg font-bold"><CheckCircle2 aria-hidden="true" /> {t("rem.recapDone")}</p>
+            <ButtonLink href="/exam/remediation/practice" size="lg">{t("rem.toPractice")}</ButtonLink>
           </Callout>
         ) : (
           <>
-            <p className="text-base">Finish the audio, or read the transcript above, then confirm.</p>
+            <p className="text-base">{t("rem.finishHint")}</p>
             <Button
               size="lg" variant="secondary"
-              onClick={() => { setRecapDone(); announce("Recap marked as complete. You can now continue to remediation practice."); router.push("/exam/remediation/practice"); }}
+              onClick={() => { setRecapDone(); announce(t("rem.recapMessage")); router.push("/exam/remediation/practice"); }}
             >
-              I have reviewed the recap. Continue to remediation practice
+              {t("rem.confirmCta")}
             </Button>
           </>
         )}

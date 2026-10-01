@@ -1,7 +1,7 @@
 "use client";
 
 import { Languages } from "lucide-react";
-import { LOCALES } from "@/lib/i18n";
+import { LOCALES, translate } from "@/lib/i18n";
 import { useApp } from "@/lib/store";
 import type { Locale } from "@/lib/types";
 import { useAnnouncer } from "./ScreenReaderAnnouncement";
@@ -20,7 +20,7 @@ export function LanguageSwitcher() {
           const l = e.target.value as Locale;
           setLanguage(l);
           const item = LOCALES.find((x) => x.code === l)!;
-          announce(`Language changed to ${item.label}${item.note ? `, ${item.note}` : ""}.`);
+          announce(translate(l, "lang.changed", { language: item.label }) + (item.note ? `, ${item.note}` : ""));
         }}
         className="min-h-12 rounded-lg border-2 border-border bg-background px-3 text-base"
       >

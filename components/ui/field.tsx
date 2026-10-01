@@ -1,3 +1,6 @@
+"use client";
+
+import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 interface FieldProps {
@@ -12,19 +15,20 @@ interface FieldProps {
 
 /** Label + description + error wiring in one place, so every form field is consistent. */
 export function Field({ id, label, description, error, children, required, className }: FieldProps) {
+  const { t } = useApp();
   const describedBy = [description ? `${id}-desc` : null, error ? `${id}-err` : null].filter(Boolean).join(" ") || undefined;
   return (
     <div className={cn("space-y-1.5", className)}>
       <label htmlFor={id} className="block text-base font-semibold">
         {label}
-        {required && <span className="font-normal text-muted"> (required)</span>}
+        {required && <span className="font-normal text-muted"> {t("common.required")}</span>}
       </label>
       {description && <p id={`${id}-desc`} className="text-sm text-muted">{description}</p>}
       {children({ id, "aria-describedby": describedBy, "aria-invalid": error ? true : undefined, "aria-required": required ? true : undefined })}
       {error && (
         <p id={`${id}-err`} className="flex items-start gap-2 text-base font-semibold text-danger">
           <span aria-hidden="true">⚠</span>
-          <span><span className="sr-only">Error: </span>{error}</span>
+          <span><span className="sr-only">{t("common.error")} </span>{error}</span>
         </p>
       )}
     </div>

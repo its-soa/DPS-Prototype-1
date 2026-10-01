@@ -8,7 +8,7 @@ import { useReduceMotion } from "@/lib/use-motion";
  * Visual confirmation only. The spoken confirmation is sent through the
  * persistent live region (useAnnouncer) so it is never announced twice.
  */
-export function AnswerSavedToast({ show, message = "Answer saved" }: { show: boolean; message?: string }) {
+export function AnswerSavedToast({ show, message }: { show: boolean; message: string }) {
   const reduce = useReduceMotion();
   return (
     <AnimatePresence>

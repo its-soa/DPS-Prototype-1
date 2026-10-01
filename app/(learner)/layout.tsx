@@ -10,7 +10,7 @@ import { useApp } from "@/lib/store";
  * Production: replace with Supabase session check + RLS (see /supabase/rls.sql).
  */
 export default function LearnerLayout({ children }: { children: React.ReactNode }) {
-  const { hydrated, account, data } = useApp();
+  const { hydrated, account, data, t } = useApp();
   const router = useRouter();
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function LearnerLayout({ children }: { children: React.ReactNode 
   if (!hydrated || !account || !data) {
     return (
       <AccessiblePageShell variant="public">
-        <p role="status" className="text-lg">Loading your training…</p>
+        <p role="status" className="text-lg">{t("common.loading")}</p>
       </AccessiblePageShell>
     );
   }

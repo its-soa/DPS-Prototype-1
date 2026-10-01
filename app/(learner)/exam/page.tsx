@@ -9,12 +9,12 @@ import { useAnnouncer } from "@/components/a11y/ScreenReaderAnnouncement";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Callout, Card } from "@/components/ui/card";
 import { EXAM_QUESTIONS, MAX_EXAM_ATTEMPTS, PASS_MARK_PERCENT } from "@/lib/mock-data";
+import { rich } from "@/lib/rich";
 import { examState } from "@/lib/progress";
 import { useLearner } from "@/lib/store";
-import { formatDate } from "@/lib/utils";
 
 export default function ExamIntroPage() {
-  const { data, startExam } = useLearner();
+  const { data, startExam, t, fmtDate } = useLearner();
   const { announce } = useAnnouncer();
   const router = useRouter();
   const [ack, setAck] = useState(false);
@@ -26,11 +26,11 @@ export default function ExamIntroPage() {
   if (state === "locked") {
     return (
       <div className="max-w-2xl space-y-6">
-        <PageIntro title="Certification exam" instructions="The exam unlocks after you complete all three required courses." />
+        <PageIntro title={t("nav.exam")} instructions={t("exam.locked.instructions")} />
         <Callout tone="warning" className="space-y-3">
-          <p className="flex items-center gap-2 text-lg font-semibold"><Lock aria-hidden="true" /> Not available yet</p>
-          <p className="text-lg">Finish all three required courses and their practice sessions. Then come back here.</p>
-          <ButtonLink href="/dashboard">Return to course overview</ButtonLink>
+          <p className="flex items-center gap-2 text-lg font-semibold"><Lock aria-hidden="true" /> {t("exam.locked.h")}</p>
+          <p className="text-lg">{t("exam.locked.body")}</p>
+          <ButtonLink href="/dashboard">{t("common.returnOverview")}</ButtonLink>
         </Callout>
       </div>
     );
@@ -38,18 +38,18 @@ export default function ExamIntroPage() {
   if (state === "passed") {
     return (
       <div className="max-w-2xl space-y-6">
-        <PageIntro title="You passed the certification exam" instructions="Your certification is active." />
-        <ButtonLink href="/certification" size="lg">View certification status</ButtonLink>
+        <PageIntro title={t("exam.passed.title")} instructions={t("exam.passed.instructions")} />
+        <ButtonLink href="/certification" size="lg">{t("exam.passed.cta")}</ButtonLink>
       </div>
     );
   }
   if (state === "retry-locked") {
     return (
       <div className="max-w-2xl space-y-6">
-        <PageIntro title="Retry locked until remediation is complete" instructions="A short remediation helps you strengthen the areas to review. It takes about ten minutes." />
+        <PageIntro title={t("exam.retryLocked.title")} instructions={t("exam.retryLocked.instructions")} />
         <Callout tone="info" className="space-y-3">
-          <p className="text-lg">Your next attempt unlocks as soon as you finish the audio recap and two practice questions.</p>
-          <ButtonLink href="/exam/remediation" size="lg">Continue to remediation</ButtonLink>
+          <p className="text-lg">{t("exam.retryLocked.body")}</p>
+          <ButtonLink href="/exam/remediation" size="lg">{t("exam.retryLocked.cta")}</ButtonLink>
         </Callout>
       </div>
     );
@@ -58,47 +58,47 @@ export default function ExamIntroPage() {
   const isRetry = data.examAttempts.length > 0;
   function start() {
     if (!ack && !data.examDraft) {
-      setErr("Please confirm that you have read the instructions.");
-      announce("Please confirm that you have read the instructions.", { assertive: true });
+      setErr(t("exam.ack.err"));
+      announce(t("exam.ack.err"), { assertive: true });
       document.getElementById("ack")?.focus();
       return;
     }
     startExam();
-    announce(data.examDraft ? `Resuming exam at question ${Math.min(savedCount + 1, EXAM_QUESTIONS.length)}.` : "Exam started. Question 1.");
+    announce(data.examDraft ? t("exam.resumingMessage", { n: Math.min(savedCount + 1, EXAM_QUESTIONS.length) }) : t("exam.startedMessage"));
     router.push(`/exam/question/${data.examDraft ? Math.min(savedCount + 1, EXAM_QUESTIONS.length) : 1}`);
   }
 
   return (
     <div className="max-w-2xl space-y-8">
       <PageIntro
-        title={isRetry ? `Certification exam: attempt ${attemptNo}` : "Certification exam instructions"}
-        instructions="Read these instructions, confirm you have read them, then choose Start exam. Take your time. There is no time limit."
+        title={isRetry ? t("exam.intro.titleRetry", { n: attemptNo }) : t("exam.intro.title")}
+        instructions={t("exam.intro.instructions")}
       />
       <Card className="space-y-4">
-        <h2 className="text-2xl">How the exam works</h2>
+        <h2 className="text-2xl">{t("exam.how.h")}</h2>
         <ul className="list-disc space-y-2 pl-6 text-lg">
-          <li>{EXAM_QUESTIONS.length} multiple-choice questions, one question on each screen.</li>
-          <li>Choose one answer, then select <strong>Save answer</strong>. You will hear and see &ldquo;Answer saved&rdquo;.</li>
-          <li>Select <strong>Next question</strong> to continue. You can also return to any earlier question.</li>
-          <li>After the last question you will see a review screen listing all of your answers.</li>
-          <li>There is <strong>no time limit</strong>. Your saved answers are kept if you leave and come back.</li>
+          <li>{t("exam.how.1", { total: EXAM_QUESTIONS.length })}</li>
+          <li>{rich(t("exam.how.2"))}</li>
+          <li>{rich(t("exam.how.3"))}</li>
+          <li>{t("exam.how.4")}</li>
+          <li>{rich(t("exam.how.5"))}</li>
         </ul>
       </Card>
       <Card className="space-y-3">
-        <h2 className="text-2xl">Pass mark and retry policy</h2>
+        <h2 className="text-2xl">{t("exam.policy.h")}</h2>
         <ul className="list-disc space-y-2 pl-6 text-lg">
-          <li>The pass mark is {PASS_MARK_PERCENT} percent.</li>
-          <li>If you do not pass, you complete a short remediation (audio recap and two practice questions), and then you can retry.</li>
-          <li>You can attempt the exam up to {MAX_EXAM_ATTEMPTS} times.</li>
+          <li>{t("exam.policy.1", { pct: PASS_MARK_PERCENT })}</li>
+          <li>{t("exam.policy.2")}</li>
+          <li>{t("exam.policy.3", { max: MAX_EXAM_ATTEMPTS })}</li>
         </ul>
       </Card>
 
       {data.examAttempts.length > 0 && (
         <section aria-labelledby="history-h" className="space-y-2">
-          <h2 id="history-h" className="text-2xl">Previous attempts</h2>
+          <h2 id="history-h" className="text-2xl">{t("exam.history.h")}</h2>
           <ul className="space-y-1 text-lg">
             {data.examAttempts.map((a) => (
-              <li key={a.attemptNumber}>Attempt {a.attemptNumber}: {a.score} of {a.total}, {a.passed ? "passed" : "not passed"} ({formatDate(a.submittedAt)})</li>
+              <li key={a.attemptNumber}>{t("exam.history.line", { n: a.attemptNumber, score: a.score, total: a.total, result: a.passed ? t("exam.history.passed") : t("exam.history.failed"), date: fmtDate(a.submittedAt) })}</li>
             ))}
           </ul>
         </section>
@@ -106,8 +106,8 @@ export default function ExamIntroPage() {
 
       {data.examDraft ? (
         <Callout tone="info" className="space-y-3">
-          <p className="text-lg">You have an exam in progress with {savedCount} of {EXAM_QUESTIONS.length} answers saved.</p>
-          <Button size="lg" onClick={start}>Resume exam at question {Math.min(savedCount + 1, EXAM_QUESTIONS.length)}</Button>
+          <p className="text-lg">{t("exam.inProgress", { saved: savedCount, total: EXAM_QUESTIONS.length })}</p>
+          <Button size="lg" onClick={start}>{t("exam.resumeCta", { n: Math.min(savedCount + 1, EXAM_QUESTIONS.length) })}</Button>
         </Callout>
       ) : (
         <div className="space-y-4">
@@ -119,12 +119,12 @@ export default function ExamIntroPage() {
                 onChange={(e) => { setAck(e.target.checked); setErr(undefined); }}
                 className="mt-1"
               />
-              <span className="text-lg">I have read the instructions and I am ready to begin.</span>
+              <span className="text-lg">{t("exam.ack")}</span>
             </label>
-            {err && <p id="ack-err" className="font-semibold text-danger"><span aria-hidden="true">⚠ </span><span className="sr-only">Error: </span>{err}</p>}
+            {err && <p id="ack-err" className="font-semibold text-danger"><span aria-hidden="true">⚠ </span><span className="sr-only">{t("common.error")} </span>{err}</p>}
           </div>
-          <Button size="lg" onClick={start}>{isRetry ? "Start exam attempt " + attemptNo : "Start exam: go to question 1"}</Button>
-          <p><Link href="/dashboard" className="inline-flex min-h-12 items-center font-semibold underline underline-offset-4">Return to course overview</Link></p>
+          <Button size="lg" onClick={start}>{isRetry ? t("exam.startRetry", { n: attemptNo }) : t("exam.start")}</Button>
+          <p><Link href="/dashboard" className="inline-flex min-h-12 items-center font-semibold underline underline-offset-4">{t("common.returnOverview")}</Link></p>
         </div>
       )}
     </div>

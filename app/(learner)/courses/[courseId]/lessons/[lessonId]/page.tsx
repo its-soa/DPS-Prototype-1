@@ -12,16 +12,17 @@ import { TextLesson } from "@/components/learning/TextLesson";
 import { TranscriptPanel } from "@/components/learning/TranscriptPanel";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Callout, Card } from "@/components/ui/card";
-import { courseById, lessonById, lessonsForCourse } from "@/lib/mock-data";
+import { useCatalog } from "@/lib/catalog";
+import { KIND_META } from "@/lib/lesson-meta";
 import { lessonStatus } from "@/lib/progress";
 import { useLearner } from "@/lib/store";
-import { formatDate } from "@/lib/utils";
-import { KIND_META } from "@/lib/lesson-meta";
+import { deviceKey } from "@/lib/utils";
 
 export default function LessonPage() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
-  const { data, state, saveLesson } = useLearner();
+  const { data, state, saveLesson, t, fmtDate, spoken } = useLearner();
   const { announce } = useAnnouncer();
+  const { lessonById, courseById, lessonsForCourse } = useCatalog();
   const lesson = lessonById(lessonId);
   const course = courseById(courseId);
 
@@ -37,22 +38,22 @@ export default function LessonPage() {
 
   // Opening a text lesson counts as starting it.
   useEffect(() => {
-    if (lesson && (lesson.kind === "text") && !data.lessons[lessonId]) saveLesson(lessonId, 1);
+    if (lesson && lesson.kind === "text" && !data.lessons[lessonId]) saveLesson(lessonId, 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!lesson || !course || lesson.courseId !== course.id) {
-    return (<><PageIntro title="Lesson not found" /><ButtonLink href="/dashboard">Return to course overview</ButtonLink></>);
+    return (<><PageIntro title={t("lesson.notFound")} /><ButtonLink href="/dashboard">{t("common.returnOverview")}</ButtonLink></>);
   }
 
   const status = lessonStatus(data, lesson);
   if (status === "locked") {
     return (
       <>
-        <PageIntro title={lesson.title} instructions="This lesson is locked until the previous lesson and its practice are complete." />
+        <PageIntro title={lesson.title} instructions={t("lesson.lockedInstructions")} />
         <Callout tone="warning" className="space-y-3">
-          <p className="flex items-center gap-2 text-lg font-semibold"><Lock aria-hidden="true" /> Finish the previous lesson and its practice first.</p>
-          <ButtonLink href={`/courses/${course.id}`}>Back to {course.title}</ButtonLink>
+          <p className="flex items-center gap-2 text-lg font-semibold"><Lock aria-hidden="true" /> {t("lesson.lockedBody")}</p>
+          <ButtonLink href={`/courses/${course.id}`}>{t("lesson.backTo", { title: course.title })}</ButtonLink>
         </Callout>
       </>
     );
@@ -62,35 +63,35 @@ export default function LessonPage() {
   const isCompleted = !!data.lessons[lessonId]?.completed;
   const practiceDone = !!data.practiceDone[lessonId];
   const nextLesson = siblings.find((l) => l.order === lesson.order + 1);
-  const { label: kindLabel } = KIND_META[lesson.kind];
+  const kindLabel = t(KIND_META[lesson.kind].labelKey);
   const timed = lesson.kind === "audio" || lesson.kind === "video";
   const otherDevice = initial && initial.device !== state.device && !initial.completed;
-
+  const dk = deviceKey(initial?.device);
   const canFinishReading = lesson.kind === "text" || (lesson.kind === "pdf" && readAll);
 
   return (
     <div className="max-w-3xl space-y-8">
-      <nav aria-label="Breadcrumb">
+      <nav aria-label={t("nav.breadcrumb")}>
         <ol className="flex flex-wrap gap-2 text-base">
-          <li><Link href="/dashboard" className="underline underline-offset-4">Course overview</Link></li>
+          <li><Link href="/dashboard" className="underline underline-offset-4">{t("nav.overview")}</Link></li>
           <li aria-hidden="true">/</li>
           <li><Link href={`/courses/${course.id}`} className="underline underline-offset-4">{course.title}</Link></li>
           <li aria-hidden="true">/</li>
-          <li aria-current="page">Lesson {lesson.order} of {siblings.length}</li>
+          <li aria-current="page">{t("lesson.nOf", { n: lesson.order, total: siblings.length })}</li>
         </ol>
       </nav>
 
       <PageIntro
-        eyebrow={`Course ${course.order} of 3 · Lesson ${lesson.order} of ${siblings.length} · ${kindLabel}`}
+        eyebrow={t("lesson.eyebrow", { course: course.order, n: lesson.order, total: siblings.length, kind: kindLabel })}
         title={lesson.title}
         instructions={lesson.description}
       />
 
-      {otherDevice && (
-        <Callout tone="info" role="region" aria-label="Saved position from another device">
+      {otherDevice && dk && (
+        <Callout tone="info" role="region" aria-label={t("lesson.otherDeviceAria")}>
           <p className="text-base">
-            You last worked on this lesson on the <strong>{initial.device}</strong> on {formatDate(initial.updatedAt)}.
-            {timed ? " Your position is ready below." : lesson.kind === "pdf" ? ` The reader is open at page ${Math.max(1, initial.position)}.` : ""}
+            {t("lesson.otherDevice", { device: t(dk), date: fmtDate(initial.updatedAt) })}{" "}
+            {timed ? t("lesson.positionReady") : lesson.kind === "pdf" ? t("lesson.pdfOpenAt", { page: Math.max(1, initial.position) }) : ""}
           </p>
         </Callout>
       )}
@@ -111,7 +112,7 @@ export default function LessonPage() {
             onComplete={complete}
             audioDescription={lesson.audioDescription}
           />
-          <TranscriptPanel segments={lesson.segments} position={position} onJump={(s) => { setPosition(s); save(s); announce(`Moved to ${Math.floor(s / 60)} minutes ${s % 60} seconds.`); }} />
+          <TranscriptPanel segments={lesson.segments} position={position} onJump={(s) => { setPosition(s); save(s); announce(t("lesson.moved", { time: spoken(s) })); }} />
         </>
       )}
 
@@ -128,51 +129,51 @@ export default function LessonPage() {
 
       {(lesson.kind === "text" || lesson.kind === "pdf") && !isCompleted && (
         <Card className="space-y-3">
-          <h2 className="text-2xl">Finish this lesson</h2>
+          <h2 className="text-2xl">{t("lesson.finishH")}</h2>
           {canFinishReading ? (
             <>
-              <p className="text-base">When you have read everything, mark the lesson as finished to unlock practice.</p>
-              <Button size="lg" onClick={() => { complete(); announce("Lesson marked as finished. Practice is now unlocked."); }}>
-                <CheckCircle2 aria-hidden="true" className="size-6" /> Mark lesson as finished
+              <p className="text-base">{t("lesson.finishBody")}</p>
+              <Button size="lg" onClick={() => { complete(); announce(t("lesson.finishedMessage")); }}>
+                <CheckCircle2 aria-hidden="true" className="size-6" /> {t("lesson.markFinished")}
               </Button>
             </>
           ) : (
-            <p className="text-base">Read to the last page of the handbook, then this button appears.</p>
+            <p className="text-base">{t("lesson.readToEnd")}</p>
           )}
         </Card>
       )}
 
       <section aria-labelledby="summary-h" className="space-y-2">
-        <h2 id="summary-h" className="text-2xl">Lesson summary</h2>
+        <h2 id="summary-h" className="text-2xl">{t("lesson.summary")}</h2>
         <p className="max-w-prose text-lg">{lesson.summary}</p>
       </section>
 
       <section aria-labelledby="materials-h" className="space-y-2">
-        <h2 id="materials-h" className="text-2xl">Related materials</h2>
+        <h2 id="materials-h" className="text-2xl">{t("lesson.materials")}</h2>
         <ul className="space-y-2">
           {lesson.materials.map((m) => (
             <li key={m.title} className="rounded-lg border-2 border-border-soft bg-surface p-3">
-              <p className="text-base font-semibold">{m.title} <span className="font-normal text-muted">({m.kind})</span></p>
-              <p className="text-sm text-muted">{m.description} Placeholder download.</p>
+              <p className="text-base font-semibold">{m.title} <span className="font-normal text-muted">({t(m.kind === "Braille-ready file" ? "material.brf" : (`material.${m.kind}` as "material.PDF"))})</span></p>
+              <p className="text-sm text-muted">{m.description} {t("lesson.placeholderDownload")}</p>
             </li>
           ))}
         </ul>
       </section>
 
       <section aria-labelledby="practice-h" className="space-y-3">
-        <h2 id="practice-h" className="text-2xl">Practice</h2>
+        <h2 id="practice-h" className="text-2xl">{t("lesson.practiceH")}</h2>
         {isCompleted ? (
           <Callout tone="success" className="space-y-3">
-            <p className="flex items-center gap-2 text-lg font-semibold"><CheckCircle2 aria-hidden="true" /> {practiceDone ? "Lesson and practice complete." : "Lesson complete. Practice is unlocked."}</p>
+            <p className="flex items-center gap-2 text-lg font-semibold"><CheckCircle2 aria-hidden="true" /> {practiceDone ? t("lesson.bothDone") : t("lesson.unlocked")}</p>
             <div className="flex flex-wrap gap-3">
               <ButtonLink href={`/courses/${course.id}/lessons/${lesson.id}/practice`} size="lg">
-                {practiceDone ? "Repeat practice session" : "Start practice session"}
+                {practiceDone ? t("lesson.repeatPractice") : t("lesson.startPractice")}
               </ButtonLink>
-              {practiceDone && nextLesson && <ButtonLink href={`/courses/${course.id}/lessons/${nextLesson.id}`} variant="secondary">Continue to lesson {nextLesson.order}</ButtonLink>}
+              {practiceDone && nextLesson && <ButtonLink href={`/courses/${course.id}/lessons/${nextLesson.id}`} variant="secondary">{t("lesson.continueTo", { n: nextLesson.order })}</ButtonLink>}
             </div>
           </Callout>
         ) : (
-          <p className="text-base text-muted">Practice unlocks when you finish this lesson.</p>
+          <p className="text-base text-muted">{t("lesson.practiceLocked")}</p>
         )}
       </section>
     </div>

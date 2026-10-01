@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { LessonSegmentDialog } from "./LessonSegmentDialog";
 import { PracticeQuestionCard } from "./PracticeQuestionCard";
+import { useApp } from "@/lib/store";
 import type { PracticeQuestion } from "@/lib/types";
 
 /** Runs a list of practice questions one at a time. Used by lessons and by remediation. */
 export function PracticeSession({
-  questions, isTimed, speed, onAnswer, onFinish, finishLabel, nextLabel = "Next question",
+  questions, isTimed, speed, onAnswer, onFinish, finishLabel, nextLabel,
 }: {
   questions: PracticeQuestion[];
   isTimed: boolean;
@@ -17,6 +18,7 @@ export function PracticeSession({
   finishLabel: string;
   nextLabel?: string;
 }) {
+  const { t } = useApp();
   const [index, setIndex] = useState(0);
   const [dialog, setDialog] = useState(false);
   const q = questions[index];
@@ -31,7 +33,7 @@ export function PracticeSession({
         onSubmit={(s, c) => onAnswer(q, s, c)}
         onOpenSegment={() => setDialog(true)}
         onContinue={() => (last ? onFinish() : setIndex(index + 1))}
-        continueLabel={last ? finishLabel : nextLabel}
+        continueLabel={last ? finishLabel : nextLabel ?? t("exam.nextShort")}
       />
       <LessonSegmentDialog open={dialog} onClose={() => setDialog(false)} related={q.related} isTimed={isTimed} speed={speed} />
     </>

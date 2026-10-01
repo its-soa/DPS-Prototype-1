@@ -4,8 +4,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { DEMO_ACCOUNTS, DEVICES, EXAM_QUESTIONS, ACCESS_CODES } from "./mock-data";
 import { emptyUserData } from "./progress";
 import { persistence, type PersistedState } from "./persistence";
-import { translate } from "./i18n";
-import { addMonths } from "./utils";
+import { INTL_LOCALE, translate, type TKey, type TVars } from "./i18n";
+import { addMonths, formatDate } from "./utils";
 import type {
   AccessibilitySettings,
   Account,
@@ -63,14 +63,19 @@ function initialState(): PersistedState {
 
 export type SignInResult =
   | { ok: true; firstLogin: boolean }
-  | { ok: false; error: string };
+  | { ok: false; error: TKey };
 
 interface Store {
   hydrated: boolean;
   state: PersistedState;
   account: Account | null;
   data: UserData | null;
-  t: (key: string, vars?: Record<string, string>) => string;
+  t: (key: TKey, vars?: TVars) => string;
+  locale: Locale;
+  /** Date in the learner's language, e.g. "29. September 2026". */
+  fmtDate: (iso: string | null | undefined) => string;
+  /** 312 -> "5 minutes 12 seconds" / "5 Minuten 12 Sekunden", for screen readers. */
+  spoken: (seconds: number) => string;
   // auth
   validateAccessCode: (code: string) => "valid" | "expired" | "used" | "unknown";
   register: (input: { fullName: string; email: string; password: string; code: string }) => void;
@@ -138,7 +143,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const store = useMemo<Store>(() => {
-    const t = (key: string, vars?: Record<string, string>) => translate(state.language, key, vars);
+    const t = (key: TKey, vars?: TVars) => translate(state.language, key, vars);
+    const spoken = (total: number) => {
+      const sec = Math.max(0, Math.floor(total));
+      const m = Math.floor(sec / 60);
+      const r = sec % 60;
+      const parts: string[] = [];
+      if (m) parts.push(t("time.minutes", { count: m }));
+      if (r || !m) parts.push(t("time.seconds", { count: r }));
+      return parts.join(" ");
+    };
 
     return {
       hydrated,
@@ -146,6 +160,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       account,
       data,
       t,
+      locale: state.language,
+      fmtDate: (iso) => formatDate(iso, INTL_LOCALE[state.language]),
+      spoken,
 
       validateAccessCode(code) {
         const normalised = code.trim().toUpperCase();
@@ -180,7 +197,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           (a) => a.email.toLowerCase() === email.trim().toLowerCase() && a.password === password,
         );
         if (!found) {
-          return { ok: false, error: "We could not sign you in with that email and password. Check both and try again." };
+          return { ok: false, error: "signin.error.invalid" };
         }
         const userData =
           stateRef.current.users[found.id] ??

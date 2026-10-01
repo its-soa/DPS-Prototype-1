@@ -53,7 +53,7 @@ export function AccessiblePageShell({
               </Button>
             </div>
           </div>
-          <nav aria-label={variant === "learner" ? "Main" : "Public"}>
+          <nav aria-label={variant === "learner" ? t("nav.main") : t("nav.public")}>
             <ul className="flex flex-wrap items-center gap-2">
               {nav.map((n) => {
                 const current = pathname === n.href || (n.href !== "/" && pathname.startsWith(n.href));
@@ -79,7 +79,7 @@ export function AccessiblePageShell({
                     type="button"
                     onClick={() => {
                       signOut();
-                      announce("You have signed out.");
+                      announce(t("nav.signedOut"));
                       router.push("/");
                     }}
                     className="inline-flex min-h-12 items-center gap-2 rounded-lg border-2 border-border bg-background px-4 text-base font-semibold hover:bg-surface-strong"

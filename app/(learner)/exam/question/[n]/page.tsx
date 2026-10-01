@@ -9,13 +9,14 @@ import { AnswerSavedToast } from "@/components/exam/AnswerSavedToast";
 import { ExamQuestionNavigator } from "@/components/exam/ExamQuestionNavigator";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ui/progress";
-import { EXAM_QUESTIONS } from "@/lib/mock-data";
+import { useCatalog } from "@/lib/catalog";
 import { useLearner } from "@/lib/store";
 
 export default function ExamQuestionPage() {
   const { n } = useParams<{ n: string }>();
   const number = Number(n);
-  const { data, saveExamAnswer } = useLearner();
+  const { data, saveExamAnswer, t } = useLearner();
+  const { exam: EXAM_QUESTIONS } = useCatalog();
   const { announce } = useAnnouncer();
   const router = useRouter();
   const total = EXAM_QUESTIONS.length;
@@ -37,13 +38,13 @@ export default function ExamQuestionPage() {
 
   function save() {
     if (!selected) {
-      setError("Choose one answer before you save.");
-      announce("Choose one answer before you save.", { assertive: true });
+      setError(t("exam.err.choose"));
+      announce(t("exam.err.choose"), { assertive: true });
       return;
     }
     setError(undefined);
     saveExamAnswer(q.id, selected);
-    announce(`Answer saved for question ${number} of ${total}.`);
+    announce(t("exam.saved.announce", { n: number, total }));
     setToast(true);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setToast(false), 4000);
@@ -51,10 +52,10 @@ export default function ExamQuestionPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <PageIntro title={`Question ${number} of ${total}`} eyebrow={`Certification exam, attempt ${draft.attemptNumber}`} />
-      <ProgressBar value={Math.round(((number - 1) / total) * 100)} label={`Exam progress: question ${number} of ${total}`} />
+      <PageIntro title={t("exam.qOf", { n: number, total })} eyebrow={t("exam.attemptEyebrow", { n: draft.attemptNumber })} />
+      <ProgressBar value={Math.round(((number - 1) / total) * 100)} label={t("exam.progressLabel", { n: number, total })} />
 
-      <form onSubmit={(e) => { e.preventDefault(); save(); }} noValidate className="space-y-5" aria-label={`Exam question ${number}`}>
+      <form onSubmit={(e) => { e.preventDefault(); save(); }} noValidate className="space-y-5" aria-label={t("exam.formLabel", { n: number })}>
         <fieldset className="space-y-3" aria-describedby={error ? "exam-error" : undefined}>
           <legend className="mb-3 text-2xl font-bold">{q.text}</legend>
           {q.choices.map((c) => (
@@ -64,36 +65,36 @@ export default function ExamQuestionPage() {
             </label>
           ))}
         </fieldset>
-        {error && <p id="exam-error" className="font-semibold text-danger"><span aria-hidden="true">⚠ </span><span className="sr-only">Error: </span>{error}</p>}
+        {error && <p id="exam-error" className="font-semibold text-danger"><span aria-hidden="true">⚠ </span><span className="sr-only">{t("common.error")} </span>{error}</p>}
 
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" size="lg"><Save aria-hidden="true" className="size-5" /> {savedAnswer ? "Update saved answer" : "Save answer"}</Button>
+          <Button type="submit" size="lg"><Save aria-hidden="true" className="size-5" /> {savedAnswer ? t("exam.update") : t("exam.save")}</Button>
           {isSaved && (
             <p className="flex items-center gap-2 text-lg font-bold text-success" data-testid="saved-inline">
-              <CheckCircle2 aria-hidden="true" className="size-6" /> Answer saved
+              <CheckCircle2 aria-hidden="true" className="size-6" /> {t("exam.saved")}
             </p>
           )}
-          {savedAnswer && !isSaved && <p className="text-base font-semibold text-muted">You changed your answer. Select Update saved answer to keep it.</p>}
+          {savedAnswer && !isSaved && <p className="text-base font-semibold text-muted">{t("exam.changed")}</p>}
         </div>
 
         <div className="flex flex-wrap gap-3 border-t-2 border-border-soft pt-5">
           {number > 1 && (
             <Button variant="secondary" size="lg" onClick={() => router.push(`/exam/question/${number - 1}`)}>
-              <ArrowLeft aria-hidden="true" className="size-5" /> Return to previous question
+              <ArrowLeft aria-hidden="true" className="size-5" /> {t("exam.prev")}
             </Button>
           )}
           {isSaved ? (
             <Button size="lg" onClick={() => router.push(last ? "/exam/review" : `/exam/question/${number + 1}`)}>
-              {last ? "Continue to review and submit" : `Next question (${number + 1} of ${total})`} <ArrowRight aria-hidden="true" className="size-5" />
+              {last ? t("exam.toReview") : t("exam.next", { n: number + 1, total })} <ArrowRight aria-hidden="true" className="size-5" />
             </Button>
           ) : (
-            <p className="self-center text-base text-muted">Save your answer to continue.</p>
+            <p className="self-center text-base text-muted">{t("exam.saveToContinue")}</p>
           )}
         </div>
       </form>
 
       <ExamQuestionNavigator current={number} answers={draft.answers} />
-      <AnswerSavedToast show={toast} />
+      <AnswerSavedToast show={toast} message={t("exam.saved")} />
     </div>
   );
 }

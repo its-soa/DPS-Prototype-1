@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useApp } from "@/lib/store";
 import { useAnnouncer } from "./ScreenReaderAnnouncement";
 
 /**
@@ -20,10 +21,11 @@ export function PageIntro({
 }) {
   const ref = useRef<HTMLHeadingElement>(null);
   const { setInstructions } = useAnnouncer();
+  const { t } = useApp();
 
   useEffect(() => {
-    document.title = `${title} · MTU Training Platform`;
-  }, [title]);
+    document.title = `${title} · ${t("brand.name")}`;
+  }, [title, t]);
 
   useEffect(() => {
     setInstructions(`${title}. ${instructions ?? ""}`.trim());

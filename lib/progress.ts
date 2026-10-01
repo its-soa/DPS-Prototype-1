@@ -4,15 +4,6 @@ import type { Course, Lesson, UserData } from "./types";
 export type LessonStatus = "locked" | "not-started" | "in-progress" | "practice-pending" | "complete";
 export type CourseStatus = "locked" | "upcoming" | "in-progress" | "complete";
 
-export const STATUS_LABEL: Record<LessonStatus | CourseStatus, string> = {
-  locked: "Locked",
-  "not-started": "Not started",
-  upcoming: "Upcoming",
-  "in-progress": "In progress",
-  "practice-pending": "Practice to do",
-  complete: "Completed",
-};
-
 export function emptyUserData(): UserData {
   return {
     onboardingComplete: false,

@@ -20,7 +20,7 @@ const Ctx = createContext<Announcer | null>(null);
  * before their content changes, so they live at the root and never unmount.
  */
 export function ScreenReaderAnnouncement({ children }: { children: React.ReactNode }) {
-  const { state } = useApp();
+  const { state, t } = useApp();
   const guidanceOn = state.settings.audioGuidance;
   const [polite, setPolite] = useState("");
   const [assertive, setAssertive] = useState("");
@@ -57,13 +57,13 @@ export function ScreenReaderAnnouncement({ children }: { children: React.ReactNo
       speak,
       setInstructions: setInstr,
       repeatInstructions: () => {
-        const text = instructions || "There are no extra instructions for this page.";
+        const text = instructions || t("a11y.noInstructions");
         announce(text);
         speak(text);
       },
       hasInstructions: true,
     }),
-    [announce, speak, instructions],
+    [announce, speak, instructions, t],
   );
 
   return (

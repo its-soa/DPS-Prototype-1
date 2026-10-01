@@ -11,20 +11,9 @@ export function formatClock(totalSeconds: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-/** 312 -> "5 minutes 12 seconds" (for screen readers) */
-export function spokenTime(totalSeconds: number) {
-  const s = Math.max(0, Math.floor(totalSeconds));
-  const m = Math.floor(s / 60);
-  const r = s % 60;
-  const parts: string[] = [];
-  if (m) parts.push(`${m} ${m === 1 ? "minute" : "minutes"}`);
-  if (r || !m) parts.push(`${r} ${r === 1 ? "second" : "seconds"}`);
-  return parts.join(" ");
-}
-
-export function formatDate(iso: string | null | undefined, locale = "en-GB") {
-  if (!iso) return "not yet";
-  return new Date(iso).toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
+export function formatDate(iso: string | null | undefined, intlLocale = "en-GB") {
+  if (!iso) return "";
+  return new Date(iso).toLocaleDateString(intlLocale, { day: "numeric", month: "long", year: "numeric" });
 }
 
 export function daysBetween(fromIso: string, to = new Date()) {
@@ -40,4 +29,11 @@ export function addDays(iso: string, days: number) {
   const d = new Date(iso);
   d.setDate(d.getDate() + days);
   return d.toISOString();
+}
+
+/** Stored device names are English keys of the mock data; map them to translation keys for display. */
+export function deviceKey(device: string | undefined) {
+  if (device === "iPad in Clinic Room 2") return "device.clinic" as const;
+  if (device === "iPad at home") return "device.home" as const;
+  return null;
 }
