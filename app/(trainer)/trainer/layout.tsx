@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { TrainerPageShell } from "@/components/trainer/TrainerPageShell";
 import { useApp } from "@/lib/store";
 import { TrainerProvider, useTrainer } from "@/lib/trainer/store";
+import { signingOut } from "@/lib/trainer/session";
 import { tr } from "@/lib/trainer/tr";
 
 function Frame({ children }: { children: React.ReactNode }) {
@@ -25,7 +26,7 @@ export default function TrainerLayout({ children }: { children: React.ReactNode 
   const router = useRouter();
   useEffect(() => {
     if (!hydrated) return;
-    if (!account) router.replace("/for-trainers/sign-in");
+    if (!account) { if (!signingOut.active) router.replace("/for-trainers/sign-in"); }
     else if (account.role !== "trainer") router.replace("/dashboard");
   }, [hydrated, account, router]);
 

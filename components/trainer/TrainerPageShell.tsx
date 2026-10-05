@@ -9,6 +9,7 @@ import { useAnnouncer } from "@/components/a11y/ScreenReaderAnnouncement";
 import { SkipToContent } from "@/components/a11y/SkipToContent";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/store";
+import { signingOut } from "@/lib/trainer/session";
 import { tr } from "@/lib/trainer/tr";
 import { cn } from "@/lib/utils";
 
@@ -106,7 +107,7 @@ export function TrainerPageShell({
                 </Link>
               </li>
               <li>
-                <button type="button" onClick={() => { signOut(); announce(tr("You have signed out.")); router.push("/for-trainers"); }}
+                <button type="button" onClick={() => { signingOut.active = true; signOut(); announce(tr("You have signed out.")); router.push("/for-trainers"); setTimeout(() => { signingOut.active = false; }, 1500); }}
                   className="flex min-h-12 w-full items-center gap-2 rounded-lg border-2 border-border bg-background px-4 text-base font-semibold hover:bg-surface-strong">
                   <LogOut aria-hidden="true" className="size-5" /> {tr("Sign out")}<span className="sr-only"> ({account?.fullName})</span>
                 </button>
