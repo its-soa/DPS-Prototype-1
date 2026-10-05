@@ -15,9 +15,10 @@ export default function LearnerLayout({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     if (hydrated && !account) router.replace("/sign-in");
+    if (hydrated && account?.role === "trainer") router.replace("/trainer");
   }, [hydrated, account, router]);
 
-  if (!hydrated || !account || !data) {
+  if (!hydrated || !account || !data || account.role === "trainer") {
     return (
       <AccessiblePageShell variant="public">
         <p role="status" className="text-lg">{t("common.loading")}</p>

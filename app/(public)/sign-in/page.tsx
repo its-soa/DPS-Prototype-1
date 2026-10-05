@@ -93,13 +93,14 @@ export default function SignInPage() {
             </Callout>
           )}
           <Link href="/" className="inline-flex min-h-12 items-center font-semibold underline underline-offset-4">{t("signin.backInfo")}</Link>
+          <p className="text-base"><Link href="/for-trainers" className="font-semibold underline underline-offset-4">{t("signin.trainerLink")}</Link></p>
         </form>
 
         <Card className="space-y-4 self-start">
           <h2 className="text-xl">{t("signin.demo.h")}</h2>
           <p className="text-base text-muted">{t("signin.demo.intro")} <code className="font-mono font-bold">Learner#2026</code></p>
           <ul className="space-y-3">
-            {DEMO_ACCOUNTS.map((a) => (
+            {DEMO_ACCOUNTS.filter((a) => a.role === "learner").map((a) => (
               <li key={a.id}>
                 <Button variant="secondary" className="w-full !justify-start text-left" onClick={() => fill(a.email)}>
                   <span>

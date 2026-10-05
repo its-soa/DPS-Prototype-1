@@ -79,8 +79,10 @@ export interface Account {
   fullName: string;
   email: string;
   password: string; // PROTOTYPE ONLY. Real build uses Supabase Auth.
-  role: "learner";
+  role: "learner" | "trainer";
   preferredLanguage: Locale;
+  /** Trainers only. */
+  organization?: string;
   isDemo?: boolean;
 }
 

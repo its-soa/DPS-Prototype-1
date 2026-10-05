@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { DEMO_ACCOUNTS, DEVICES, EXAM_QUESTIONS, ACCESS_CODES } from "./mock-data";
+import { ACCESS_CODES, DEMO_ACCOUNTS, DEMO_TRAINERS, DEVICES, EXAM_QUESTIONS } from "./mock-data";
 import { emptyUserData } from "./progress";
 import { persistence, type PersistedState } from "./persistence";
 import { INTL_LOCALE, translate, type TKey, type TVars } from "./i18n";
@@ -51,7 +51,7 @@ function seedReturningLearner(): UserData {
 function initialState(): PersistedState {
   return {
     version: 1,
-    accounts: DEMO_ACCOUNTS,
+    accounts: [...DEMO_ACCOUNTS, ...DEMO_TRAINERS],
     currentUserId: null,
     users: {},
     settings: DEFAULT_SETTINGS,
@@ -80,7 +80,8 @@ interface Store {
   validateAccessCode: (code: string) => "valid" | "expired" | "used" | "unknown";
   register: (input: { fullName: string; email: string; password: string; code: string }) => void;
   emailExists: (email: string) => boolean;
-  signIn: (email: string, password: string, device: string) => Promise<SignInResult>;
+  signIn: (email: string, password: string, device: string, role?: "learner" | "trainer") => Promise<SignInResult>;
+  registerTrainer: (input: { fullName: string; email: string; password: string; organization: string }) => void;
   signOut: () => void;
   // settings
   setSettings: (patch: Partial<AccessibilitySettings>) => void;
@@ -111,7 +112,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const saved = persistence.load();
-    if (saved) setState({ ...initialState(), ...saved, settings: { ...DEFAULT_SETTINGS, ...saved.settings } });
+    if (saved) {
+      // Older saved sessions may not know the trainer demo accounts yet: add any that are missing.
+      const known = new Set(saved.accounts.map((a) => a.id));
+      const accounts = [...saved.accounts, ...DEMO_TRAINERS.filter((a) => !known.has(a.id))];
+      setState({ ...initialState(), ...saved, accounts, settings: { ...DEFAULT_SETTINGS, ...saved.settings } });
+    }
     setHydrated(true);
   }, []);
 
@@ -127,7 +133,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     el.dataset.contrast = s.contrast;
     el.dataset.theme = s.theme;
     el.dataset.reduceMotion = String(s.reduceMotion);
-    el.lang = state.language;
+    // Trainer pages are English-only and set data-force-lang so screen readers use an English voice.
+    el.lang = el.dataset.forceLang || state.language;
   }, [state.settings, state.language]);
 
   const account = state.accounts.find((a) => a.id === state.currentUserId) ?? null;
@@ -191,7 +198,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           ],
         }));
       },
-      async signIn(email, password, device) {
+      async signIn(email, password, device, role = "learner") {
         await new Promise((r) => setTimeout(r, 900)); // mock network latency
         const found = stateRef.current.accounts.find(
           (a) => a.email.toLowerCase() === email.trim().toLowerCase() && a.password === password,
@@ -199,6 +206,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (!found) {
           return { ok: false, error: "signin.error.invalid" };
         }
+        if (found.role !== role) return { ok: false, error: "signin.error.wrongRole" };
         const userData =
           stateRef.current.users[found.id] ??
           (found.id === "user-returning" ? seedReturningLearner() : emptyUserData());
@@ -213,6 +221,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           },
         }));
         return { ok: true, firstLogin };
+      },
+      registerTrainer({ fullName, email, password, organization }) {
+        setState((s) => ({
+          ...s,
+          accounts: [
+            ...s.accounts,
+            {
+              id: `trainer-${Date.now()}`,
+              fullName: fullName.trim(),
+              email: email.trim().toLowerCase(),
+              password,
+              role: "trainer",
+              organization: organization.trim(),
+              preferredLanguage: "en",
+            },
+          ],
+        }));
       },
       signOut() {
         setState((s) => ({ ...s, currentUserId: null }));

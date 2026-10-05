@@ -572,11 +572,36 @@ export const DEMO_ACCOUNTS: Account[] = [
   },
 ];
 
+/** Trainer demo accounts (see lib/trainer/*). */
+export const DEMO_TRAINERS: Account[] = [
+  {
+    id: "trainer-alex",
+    fullName: "Alex Meier",
+    email: "alex.trainer@example.org",
+    password: "Trainer#2026",
+    role: "trainer",
+    organization: "North Clinic Training Centre",
+    preferredLanguage: "en",
+    isDemo: true,
+  },
+  {
+    id: "trainer-priya",
+    fullName: "Priya Nair",
+    email: "priya.trainer@example.org",
+    password: "Trainer#2026",
+    role: "trainer",
+    organization: "North Clinic Training Centre",
+    preferredLanguage: "en",
+    isDemo: true,
+  },
+];
+
 /** Mock `access_codes` rows. */
 export const ACCESS_CODES = [
   { code: "MTU-2026-DEMO", status: "active" },
   { code: "DPS-INVITE-001", status: "active" },
   { code: "MTU-OLD-2024", status: "expired" },
+  { code: "TRAINER-2026-DEMO", status: "active" }, // optional on trainer registration
 ];
 
 export const DEVICES = {

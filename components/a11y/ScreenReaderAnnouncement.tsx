@@ -40,7 +40,7 @@ export function ScreenReaderAnnouncement({ children }: { children: React.ReactNo
       if ((!guidanceOn && !force) || typeof window === "undefined" || !("speechSynthesis" in window)) return;
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = state.language;
+      u.lang = document.documentElement.lang || state.language;
       u.rate = 0.95;
       window.speechSynthesis.speak(u);
     },

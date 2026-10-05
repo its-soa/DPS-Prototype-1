@@ -90,6 +90,9 @@ export const pub = {
   "signin.demo.returning": "Returning learner",
   "signin.device": "Signing in from",
   "signin.deviceHint": "Simulates using a different device. The returning learner last worked on the iPad in Clinic Room 2.",
+  "signin.error.wrongRole": "This account cannot be used on this page. Trainers sign in on the trainer sign-in page, learners on the learner sign-in page.",
+  "signin.trainerLink": "Are you a trainer? Go to the trainer area",
+  "nav.forTrainers": "For trainers",
   "device.clinic": "iPad in Clinic Room 2",
   "device.home": "iPad at home",
 } as const;

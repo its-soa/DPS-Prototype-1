@@ -37,3 +37,5 @@ export function Field({ id, label, description, error, children, required, class
 
 export const inputClass =
   "min-h-12 w-full rounded-lg border-2 border-border bg-background px-4 py-2 text-base aria-[invalid=true]:border-danger aria-[invalid=true]:border-4";
+
+export const textareaClass = `${inputClass} min-h-32 py-3 leading-relaxed`;

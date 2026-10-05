@@ -31,6 +31,7 @@ export function AccessiblePageShell({
     { href: "/", label: t("nav.about") },
     { href: "/sign-in", label: t("nav.signIn") },
     { href: "/register", label: t("nav.register") },
+    { href: "/for-trainers", label: t("nav.forTrainers") },
   ];
   const nav = variant === "learner" ? learnerNav : publicNav;
 

@@ -92,6 +92,9 @@ export const pub_de: Record<keyof typeof pub, string> = {
   "signin.demo.returning": "Zurückkehrende Lernende",
   "signin.device": "Anmeldung von",
   "signin.deviceHint": "Simuliert die Nutzung eines anderen Geräts. Die zurückkehrende Lernende hat zuletzt am iPad in Behandlungsraum 2 gearbeitet.",
+  "signin.error.wrongRole": "Dieses Konto kann auf dieser Seite nicht verwendet werden. Trainerinnen und Trainer melden sich auf der Trainer-Anmeldeseite an, Lernende auf der Anmeldeseite für Lernende.",
+  "signin.trainerLink": "Sie sind Trainerin oder Trainer? Zum Trainerbereich",
+  "nav.forTrainers": "Für Trainerinnen und Trainer",
   "device.clinic": "iPad in Behandlungsraum 2",
   "device.home": "iPad zu Hause",
 };
